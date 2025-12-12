@@ -12,6 +12,15 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/.dockerignore">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/.dockerignore" />
+              <option name="originalContent" value="__pycache__/&#10;" />
+              <option name="updatedContent" value="__pycache__/&#10;*.pyc&#10;*.pyo&#10;*.pyd&#10;.venv/&#10;build/&#10;dist/&#10;.eggs/&#10;*.egg-info/&#10;.env&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

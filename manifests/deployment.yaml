@@ -19,7 +19,7 @@ spec:
         - name: {{OPENSHIFT_APP_NAME}}
           resources: {}
           ports:
-            - containerPort: 8080
+            - containerPort: 5000
               protocol: TCP
           image: {{IMAGE_NAME}}:{{IMAGE_TAG}}
           imagePullPolicy: Always

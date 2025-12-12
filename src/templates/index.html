@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Python Backend Demo</title>
+</head>
+<body>
+    <h1>Python Backend Demo</h1>
+    <p id="greet-text">Current text</p>
+    <button onclick="greet()">Greet</button>
+    <script>
+        function greet() {
+            fetch('/greet')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('greet-text').innerText = data.message;
+                });
+        }
+    </script>
+</body>
+</html>
+
