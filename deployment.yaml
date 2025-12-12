@@ -1,25 +1,25 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: html-openshift-app
+  name: {{OPENSHIFT_APP_NAME}}
   labels:
-    app: html-openshift-app
-    app.kubernetes.io/part-of: html-openshift-app
+    app: {{OPENSHIFT_APP_NAME}}
+    app.kubernetes.io/part-of: {{OPENSHIFT_APP_NAME}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: html-openshift-app
+      app: {{OPENSHIFT_APP_NAME}}
   template:
     metadata:
       labels:
-        app: html-openshift-app
+        app: {{OPENSHIFT_APP_NAME}}
     spec:
       containers:
-        - name: html-openshift-app
+        - name: {{OPENSHIFT_APP_NAME}}
           resources: {}
           ports:
             - containerPort: 8080
               protocol: TCP
-          image: ghcr.io/{{IMAGE_OWNER}}/html-openshift-app:{{IMAGE_TAG}}
+          image: ghcr.io/{{IMAGE_OWNER}}/{{REPOSITORY}}:{{IMAGE_TAG}}
           imagePullPolicy: Always

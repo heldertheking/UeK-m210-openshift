@@ -15,7 +15,8 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/html-openshift-app:${{ github.ref_name }}
+      # The image name uses the repository name as the package name
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:${{ github.ref_name }}
       IMAGE_TAG: ${{ github.ref_name }}
     steps:
       - name: Checkout code
@@ -40,6 +41,10 @@ jobs:
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ github.ref_name }}|g' deployment.yaml
           sed -i 's|{{IMAGE_OWNER}}|${{ github.repository_owner }}|g' deployment.yaml
+          sed -i 's|{{REPOSITORY}}|${{ github.repository }}|g' deployment.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' deployment.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' service.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' route.yaml
 
       - name: Install OpenShift CLI
         run: |
@@ -50,7 +55,7 @@ jobs:
       - name: Log in to OpenShift
         run: |
           oc login ${{ secrets.OPENSHIFT_SERVER }} --token=${{ secrets.OPENSHIFT_TOKEN }} --insecure-skip-tls-verify=true
-          oc project 254501-heloli
+          oc project ${{ secrets.OPENSHIFT_PROJECT }}
 
       - name: Apply deployment
         run: |
