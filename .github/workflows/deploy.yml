@@ -45,7 +45,7 @@ jobs:
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ github.ref_name }}|g' deployment.yaml
           sed -i 's|{{IMAGE_OWNER}}|${{ github.repository_owner }}|g' deployment.yaml
-          sed -i 's|{{REPOSITORY}}|${{ steps.image.outputs.name }}|g' deployment.yaml
+          sed -i 's|{{IMAGE_NAME}}|${{ steps.image.outputs.name }}|g' deployment.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' deployment.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' service.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' route.yaml
