@@ -39,38 +39,36 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }} .
-
-      - name: Push Docker image
-        run: |
-          docker push ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
-          # Also tag and push as latest
-          docker tag ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }} ${{ steps.image.outputs.name }}:latest
-          docker push ${{ steps.image.outputs.name }}:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+            ${{ steps.image.outputs.name }}:latest
 
       - name: Replace placeholders in manifests
         run: |
-          sed -i 's|{{IMAGE_NAME}}|${{ steps.image.outputs.name }}|g' deployment.yaml
-          sed -i 's|{{IMAGE_TAG}}|${{ steps.image.outputs.tag }}|g' deployment.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' deployment.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' service.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' route.yaml
+          sed -i 's|{{IMAGE_NAME}}|${{ steps.image.outputs.name }}|g' manifests/deployment.yaml
+          sed -i 's|{{IMAGE_TAG}}|${{ steps.image.outputs.tag }}|g' manifests/deployment.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/deployment.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/service.yaml
+          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/route.yaml
 
       - name: Install OpenShift CLI
-        run: |
-          curl -sL https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
-          tar -xzf oc.tar.gz
-          sudo mv oc /usr/local/bin/
+        uses: redhat-actions/oc-installer@v1
+        with:
+          version: latest
 
       - name: Log in to OpenShift
-        run: |
-          oc login ${{ secrets.OPENSHIFT_SERVER }} --token=${{ secrets.OPENSHIFT_TOKEN }} --insecure-skip-tls-verify=true
-          oc project ${{ secrets.OPENSHIFT_PROJECT }}
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+          insecure_skip_tls_verify: true
+          namespace: ${{ secrets.OPENSHIFT_PROJECT }}
 
       - name: Apply deployment
         run: |
-          oc apply -f deployment.yaml
-          oc apply -f service.yaml
-          oc apply -f route.yaml
+          oc apply -f manifests/
