@@ -50,16 +50,17 @@ jobs:
 
       - name: Replace placeholders in manifests
         run: |
-          sed -i 's|{{IMAGE_NAME}}|${{ steps.image.outputs.name }}|g' manifests/deployment.yaml
-          sed -i 's|{{IMAGE_TAG}}|${{ steps.image.outputs.tag }}|g' manifests/deployment.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/deployment.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/service.yaml
-          sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' manifests/route.yaml
+          export IMAGE_NAME=${{ steps.image.outputs.name }}
+          export IMAGE_TAG=${{ steps.image.outputs.tag }}
+          export OPENSHIFT_APP_NAME=${{ secrets.OPENSHIFT_APP_NAME }}
+          envsubst < manifests/deployment.yaml > manifests/deployment.yaml.tmp && mv manifests/deployment.yaml.tmp manifests/deployment.yaml
+          envsubst < manifests/service.yaml > manifests/service.yaml.tmp && mv manifests/service.yaml.tmp manifests/service.yaml
+          envsubst < manifests/route.yaml > manifests/route.yaml.tmp && mv manifests/route.yaml.tmp manifests/route.yaml
 
       - name: Install OpenShift CLI
         uses: redhat-actions/oc-installer@v1
         with:
-          version: latest
+          oc_version: latest
 
       - name: Log in to OpenShift
         uses: redhat-actions/oc-login@v1
