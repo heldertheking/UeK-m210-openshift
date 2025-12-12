@@ -40,6 +40,7 @@ jobs:
       - name: Push Docker image
         run: |
           docker tag ${{ steps.image.outputs.name }} ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+          docker tag ${{ steps.image.outputs.name }} ${{ steps.image.outputs.name }}:latest
           docker push ${{ steps.image.outputs.name }}:${{ github.ref_name }}
 
       - name: Replace image tag in deployment.yaml
