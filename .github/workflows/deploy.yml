@@ -55,3 +55,5 @@ jobs:
       - name: Apply deployment
         run: |
           oc apply -f deployment.yaml
+          oc apply -f service.yaml
+          oc apply -f route.yaml
