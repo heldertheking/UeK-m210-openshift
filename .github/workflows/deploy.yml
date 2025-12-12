@@ -15,13 +15,19 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      # The image name uses the repository name as the package name
-      IMAGE_TAG: ${{ github.ref_name }}
+      IMAGE_NAME: ${{ github.repository }}
 
     steps:
-      - name: Set image name
+      - name: Set image name and tag
         id: image
-        run: echo "name=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        run: |
+          echo "name=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          # Use tag name if it's a tag push, otherwise use 'latest' for branch pushes
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,19 +41,19 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ steps.image.outputs.name }}:${{ github.ref_name }} .
+          docker build -t ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }} .
 
       - name: Push Docker image
         run: |
-          docker tag ${{ steps.image.outputs.name }} ${{ steps.image.outputs.name }}:${{ github.ref_name }}
-          docker tag ${{ steps.image.outputs.name }} ${{ steps.image.outputs.name }}:latest
-          docker push ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+          docker push ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+          # Also tag and push as latest
+          docker tag ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }} ${{ steps.image.outputs.name }}:latest
+          docker push ${{ steps.image.outputs.name }}:latest
 
-      - name: Replace image tag in deployment.yaml
+      - name: Replace placeholders in manifests
         run: |
-          sed -i 's|{{IMAGE_TAG}}|${{ github.ref_name }}|g' deployment.yaml
-          sed -i 's|{{IMAGE_OWNER}}|${{ github.repository_owner }}|g' deployment.yaml
           sed -i 's|{{IMAGE_NAME}}|${{ steps.image.outputs.name }}|g' deployment.yaml
+          sed -i 's|{{IMAGE_TAG}}|${{ steps.image.outputs.tag }}|g' deployment.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' deployment.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' service.yaml
           sed -i 's|{{OPENSHIFT_APP_NAME}}|${{ secrets.OPENSHIFT_APP_NAME }}|g' route.yaml
